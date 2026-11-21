@@ -396,12 +396,30 @@ private fun UpdateAvailableCard(
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary
                 )
-                Column {
-                    Text(
-                        text = "Pembaruan Tersedia: ${release.tagName}",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
+                Column(modifier = Modifier.weight(1f)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = "Pembaruan Tersedia: ${release.tagName}",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        if (release.isPrerelease) {
+                            Surface(
+                                color = MaterialTheme.colorScheme.tertiaryContainer,
+                                shape = RoundedCornerShape(50)
+                            ) {
+                                Text(
+                                    text = "PRE-RELEASE",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onTertiaryContainer,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+                    }
                     Text(
                         text = "Saat ini v$currentVersion • ${release.apkFileName} (${formatBytes(release.apkSizeBytes)})",
                         style = MaterialTheme.typography.labelMedium,

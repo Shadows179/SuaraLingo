@@ -74,8 +74,56 @@ object AppVersionComparator {
         return when {
             current.preRelease.isNotEmpty() && remote.preRelease.isEmpty() -> true
             current.preRelease.isEmpty() && remote.preRelease.isNotEmpty() -> false
-            else -> remote.preRelease > current.preRelease
+            else -> comparePreReleaseNatural(remote.preRelease, current.preRelease) > 0
         }
+    }
+
+    private fun comparePreReleaseNatural(a: String, b: String): Int {
+        if (a == b) return 0
+        val tokensA = tokenizeNatural(a)
+        val tokensB = tokenizeNatural(b)
+        val len = maxOf(tokensA.size, tokensB.size)
+        for (i in 0 until len) {
+            if (i >= tokensA.size) return -1
+            if (i >= tokensB.size) return 1
+            val ta = tokensA[i]
+            val tb = tokensB[i]
+            val numA = ta.toLongOrNull()
+            val numB = tb.toLongOrNull()
+            val cmp = when {
+                numA != null && numB != null -> numA.compareTo(numB)
+                else -> ta.compareTo(tb)
+            }
+            if (cmp != 0) return cmp
+        }
+        return 0
+    }
+
+    private fun tokenizeNatural(input: String): List<String> {
+        if (input.isEmpty()) return emptyList()
+        val result = mutableListOf<String>()
+        val current = StringBuilder()
+        var currentIsDigit = input[0].isDigit()
+        for (ch in input) {
+            val isDigit = ch.isDigit()
+            if (ch == '.' || ch == '-' || ch == '_') {
+                if (current.isNotEmpty()) {
+                    result.add(current.toString())
+                    current.clear()
+                }
+                continue
+            }
+            if (current.isNotEmpty() && isDigit != currentIsDigit) {
+                result.add(current.toString())
+                current.clear()
+            }
+            currentIsDigit = isDigit
+            current.append(ch)
+        }
+        if (current.isNotEmpty()) {
+            result.add(current.toString())
+        }
+        return result
     }
 
     private data class ParsedVersion(

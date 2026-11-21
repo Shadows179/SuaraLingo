@@ -36,7 +36,8 @@ data class ReleaseInfo(
     val apkFileName: String,
     val apkSizeBytes: Long,
     val expectedSha256: String?,
-    val publishedAt: String
+    val publishedAt: String,
+    val isPrerelease: Boolean = false
 )
 
 sealed interface AppUpdateStatus {
@@ -117,7 +118,7 @@ class AppUpdateManager(
         _status.value = AppUpdateStatus.Checking
 
         try {
-            val apiUrl = "https://api.github.com/repos/$repoSlug/releases/latest"
+            val apiUrl = "https://api.github.com/repos/$repoSlug/releases?per_page=10"
             val request = Request.Builder()
                 .url(apiUrl)
                 .header("Accept", "application/vnd.github+json")
@@ -159,8 +160,23 @@ class AppUpdateManager(
                 raw
             }
 
-            val json = JSONObject(bodyString)
-            if (json.optBoolean("draft", false) || json.optBoolean("prerelease", false)) {
+            val trimmedBody = bodyString.trim()
+            val json: JSONObject? = if (trimmedBody.startsWith("[")) {
+                val releasesArray = JSONArray(trimmedBody)
+                var chosen: JSONObject? = null
+                for (i in 0 until releasesArray.length()) {
+                    val item = releasesArray.optJSONObject(i) ?: continue
+                    if (!item.optBoolean("draft", false)) {
+                        chosen = item
+                        break
+                    }
+                }
+                chosen
+            } else {
+                JSONObject(trimmedBody).takeUnless { it.optBoolean("draft", false) }
+            }
+
+            if (json == null) {
                 val upToDate = AppUpdateStatus.UpToDate(currentVersionName, currentVersionName)
                 _status.value = upToDate
                 return@withContext upToDate
@@ -197,7 +213,8 @@ class AppUpdateManager(
                 apkFileName = apkAsset.name,
                 apkSizeBytes = apkAsset.size,
                 expectedSha256 = apkAsset.sha256,
-                publishedAt = json.optString("published_at", "")
+                publishedAt = json.optString("published_at", ""),
+                isPrerelease = json.optBoolean("prerelease", false)
             )
             val available = AppUpdateStatus.UpdateAvailable(currentVersionName, release)
             _status.value = available

@@ -142,31 +142,37 @@ class ExampleRobolectricTest {
         assertTrue(AppVersionComparator.isRemoteVersionNewer("1.2.3", "v1.10.0"))
         assertFalse(AppVersionComparator.isRemoteVersionNewer("2.0.0", "v1.9.9"))
         assertFalse(AppVersionComparator.isRemoteVersionNewer("1.2.0", "v1.2.0-beta1"))
+        assertTrue(AppVersionComparator.isRemoteVersionNewer("0.1-build1", "v0.1-build5"))
+        assertTrue(AppVersionComparator.isRemoteVersionNewer("0.1-build9", "v0.1-build10"))
+        assertFalse(AppVersionComparator.isRemoteVersionNewer("0.1-build10", "v0.1-build10"))
+        assertTrue(AppVersionComparator.isRemoteVersionNewer("0.1-build10", "v0.1.0"))
     }
 
     @Test
-    fun `app update manager parses release and rejects mismatched sha256`() = runBlocking {
+    fun `app update manager parses prerelease array and rejects mismatched sha256`() = runBlocking {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val fakeClient = OkHttpClient.Builder()
             .addInterceptor { chain ->
                 val url = chain.request().url.toString()
                 if (url.contains("api.github.com")) {
                     val json = """
-                        {
-                          "tag_name": "v1.2.0",
-                          "name": "SuaraLingo 1.2.0",
-                          "body": "Perbaikan suara offline",
-                          "draft": false,
-                          "prerelease": false,
-                          "assets": [
-                            {
-                              "name": "suaralingo-release.apk",
-                              "browser_download_url": "https://github.com/user/SuaraLingo/releases/download/v1.2.0/suaralingo-release.apk",
-                              "size": 12,
-                              "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
-                            }
-                          ]
-                        }
+                        [
+                          {
+                            "tag_name": "v0.1-build10",
+                            "name": "SuaraLingo v0.1-build10",
+                            "body": "Perbaikan suara offline",
+                            "draft": false,
+                            "prerelease": true,
+                            "assets": [
+                              {
+                                "name": "SuaraLingo-v0.1-build10.apk",
+                                "browser_download_url": "https://github.com/Shadows179/SuaraLingo/releases/download/v0.1-build10/SuaraLingo-v0.1-build10.apk",
+                                "size": 12,
+                                "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+                              }
+                            ]
+                          }
+                        ]
                     """.trimIndent()
                     Response.Builder()
                         .request(chain.request())
@@ -189,13 +195,14 @@ class ExampleRobolectricTest {
 
         val manager = AppUpdateManager(
             context = context,
-            currentVersionName = "1.0",
+            currentVersionName = "0.1-build9",
             httpClient = fakeClient
         )
-        val checkStatus = manager.checkForUpdate("user/SuaraLingo")
+        val checkStatus = manager.checkForUpdate("Shadows179/SuaraLingo")
         assertTrue(checkStatus is AppUpdateStatus.UpdateAvailable)
         val release: ReleaseInfo = (checkStatus as AppUpdateStatus.UpdateAvailable).release
-        assertEquals("v1.2.0", release.tagName)
+        assertEquals("v0.1-build10", release.tagName)
+        assertTrue(release.isPrerelease)
 
         val dlStatus = manager.downloadUpdate(release)
         assertTrue(dlStatus is AppUpdateStatus.Error)

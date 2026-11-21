@@ -59,13 +59,15 @@ jobs:
             TAG_NAME="${GITHUB_REF_NAME}"
             VERSION_NAME="${TAG_NAME#v}"
           else
-            VERSION_NAME="1.0.${GITHUB_RUN_NUMBER}"
+            VERSION_NAME="0.1-build${GITHUB_RUN_NUMBER}"
             TAG_NAME="v${VERSION_NAME}"
           fi
           VERSION_CODE=$((GITHUB_RUN_NUMBER + 1))
           echo "tag_name=${TAG_NAME}" >> "$GITHUB_OUTPUT"
           echo "version_name=${VERSION_NAME}" >> "$GITHUB_OUTPUT"
           echo "version_code=${VERSION_CODE}" >> "$GITHUB_OUTPUT"
+          echo "is_prerelease=true" >> "$GITHUB_OUTPUT"
+          echo "make_latest=false" >> "$GITHUB_OUTPUT"
 
       - name: Restore cached debug keystore (fallback)
         uses: actions/cache@v4
@@ -141,17 +143,19 @@ jobs:
           name: SuaraLingo-${{ steps.version.outputs.tag_name }}
           path: ${{ steps.artifact.outputs.apk_path }}
 
-      - name: Publish GitHub Release
+      - name: Publish GitHub Pre-release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.tag_name }}
           name: "SuaraLingo ${{ steps.version.outputs.tag_name }}"
+          prerelease: ${{ steps.version.outputs.is_prerelease }}
+          make_latest: ${{ steps.version.outputs.make_latest }}
           generate_release_notes: true
-          make_latest: true
           body: |
-            Pembaruan otomatis SuaraLingo (${{ steps.version.outputs.tag_name }}).
+            Pembaruan otomatis Pre-release SuaraLingo (${{ steps.version.outputs.tag_name }}).
 
             - **Versi:** `${{ steps.version.outputs.version_name }}` (build `${{ steps.version.outputs.version_code }}`)
+            - **Status:** Pre-release (pengembangan aktif)
             - **SHA-256:** `${{ steps.artifact.outputs.sha256 }}`
             - **Commit:** `${{ github.sha }}`
           files: |
