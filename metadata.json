@@ -1,0 +1,6 @@
+{
+  "name": "SuaraLingo",
+  "description": "Aplikasi penerjemah suara real-time dengan dukungan mode offline dan paket bahasa di perangkat.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

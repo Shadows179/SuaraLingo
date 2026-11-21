@@ -1,0 +1,71 @@
+<resources>
+    <string name="app_name">SuaraLingo</string>
+    <string name="nav_translator">Penerjemah</string>
+    <string name="nav_offline_packs">Paket Offline</string>
+    <string name="nav_history">Riwayat</string>
+
+    <string name="mode_offline">Mode Offline</string>
+    <string name="mode_online">Mode Online</string>
+    <string name="status_network_offline">Koneksi Terputus</string>
+    <string name="status_offline_ready">Siap Offline</string>
+    <string name="status_needs_download">Perlu Unduh</string>
+
+    <string name="mic_idle_hint">Ketuk mikrofon untuk menerjemahkan suara secara instan</string>
+    <string name="mic_listening_hint">Sedang merekam suara… Ketuk lagi untuk berhenti</string>
+    <string name="mic_recording_badge">MEREKAM</string>
+    <string name="mic_translating_badge">MENERJEMAHKAN</string>
+    <string name="mic_start_cd">Mulai merekam suara</string>
+    <string name="mic_stop_cd">Hentikan rekaman suara</string>
+
+    <string name="swap_languages_cd">Tukar bahasa sumber dan tujuan</string>
+    <string name="speak_source_cd">Putar audio teks asli</string>
+    <string name="speak_target_cd">Putar audio hasil terjemahan</string>
+    <string name="copy_translation_cd">Salin hasil terjemahan</string>
+    <string name="toggle_favorite_cd">Tandai sebagai favorit</string>
+    <string name="auto_speak_label">Ucapkan Otomatis</string>
+    <string name="manual_input_toggle">Ketik Manual</string>
+    <string name="clear_text_cd">Hapus teks</string>
+
+    <string name="source_placeholder">Ucapan Anda akan muncul secara real-time di sini…</string>
+    <string name="target_placeholder">Terjemahan instan akan muncul di sini…</string>
+    <string name="manual_input_hint">Ketik teks untuk diterjemahkan…</string>
+    <string name="translate_now_button">Terjemahkan</string>
+
+    <string name="offline_missing_title">Paket bahasa offline belum tersedia</string>
+    <string name="offline_missing_desc">Unduh paket bahasa yang dipilih agar terjemahan tetap berjalan tanpa internet.</string>
+    <string name="download_now_button">Unduh Paket</string>
+    <string name="downloading_pack_label">Mengunduh paket bahasa…</string>
+
+    <string name="permission_mic_title">Izin Mikrofon Diperlukan</string>
+    <string name="permission_mic_desc">SuaraLingo membutuhkan akses mikrofon untuk mendengarkan dan menerjemahkan ucapan Anda secara real-time.</string>
+    <string name="permission_grant_button">Izinkan Mikrofon</string>
+
+    <string name="offline_screen_title">Paket Bahasa Offline</string>
+    <string name="offline_screen_subtitle">Unduh bahasa agar Anda dapat menerjemahkan kapan saja tanpa koneksi internet.</string>
+    <string name="search_language_hint">Cari bahasa…</string>
+    <string name="download_pack_cd">Unduh paket offline</string>
+    <string name="delete_pack_cd">Hapus paket offline</string>
+
+    <string name="history_screen_title">Riwayat Terjemahan</string>
+    <string name="history_filter_all">Semua</string>
+    <string name="history_filter_favorites">Favorit</string>
+    <string name="history_empty_title">Belum ada riwayat terjemahan</string>
+    <string name="history_empty_desc">Mulai rekam suara atau ketik kalimat di tab Penerjemah untuk menyimpannya di sini.</string>
+    <string name="history_clear_all">Hapus Semua</string>
+    <string name="history_clear_confirm_title">Hapus semua riwayat?</string>
+    <string name="history_clear_confirm_body">Semua catatan terjemahan yang tersimpan di perangkat akan dihapus permanen.</string>
+    <string name="action_cancel">Batal</string>
+    <string name="action_delete">Hapus</string>
+    <string name="copied_snackbar">Teks berhasil disalin</string>
+
+    <string name="update_center_cd">Pembaruan aplikasi</string>
+    <string name="update_dialog_title">Pembaruan Aplikasi</string>
+    <string name="update_auto_check_label">Cek update otomatis saat buka aplikasi</string>
+    <string name="update_repo_label">Repositori GitHub (owner/repo)</string>
+    <string name="update_repo_hint">contoh: username/SuaraLingo</string>
+    <string name="update_check_now">Periksa Update</string>
+    <string name="update_download_install">Unduh &amp; Pasang</string>
+    <string name="update_install_now">Pasang Pembaruan</string>
+    <string name="update_grant_install_perm">Izinkan Instalasi Aplikasi</string>
+    <string name="update_cancel_download">Batalkan Unduhan</string>
+</resources>
