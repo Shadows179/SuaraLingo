@@ -54,7 +54,7 @@ data class TranslatorUiState(
     val errorMessage: String? = null,
     val isRecognitionAvailable: Boolean = true,
     val isOnDeviceSpeechSupported: Boolean = false,
-    val updateRepoSlug: String = "",
+    val updateRepoSlug: String = "Shadows179/SuaraLingo",
     val autoUpdateCheck: Boolean = true,
     val lastUpdateCheckMs: Long = 0L,
     val updateStatus: AppUpdateStatus = AppUpdateStatus.Idle,

@@ -1,0 +1,128 @@
+name: Build APK & Publish GitHub Release
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-and-release:
+    name: Build APK & Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Set up Gradle 9.3.1
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "9.3.1"
+
+      - name: Compute release version and tag
+        id: version
+        shell: bash
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            TAG_NAME="${GITHUB_REF_NAME}"
+            VERSION_NAME="${TAG_NAME#v}"
+          else
+            VERSION_NAME="1.0.${GITHUB_RUN_NUMBER}"
+            TAG_NAME="v${VERSION_NAME}"
+          fi
+          VERSION_CODE=$((GITHUB_RUN_NUMBER + 1))
+          echo "tag_name=${TAG_NAME}" >> "$GITHUB_OUTPUT"
+          echo "version_name=${VERSION_NAME}" >> "$GITHUB_OUTPUT"
+          echo "version_code=${VERSION_CODE}" >> "$GITHUB_OUTPUT"
+
+      - name: Prepare signing keystore
+        id: signing
+        shell: bash
+        env:
+          RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          if [[ -n "${RELEASE_KEYSTORE_BASE64}" && -n "${STORE_PASSWORD}" && -n "${KEY_PASSWORD}" ]]; then
+            echo "${RELEASE_KEYSTORE_BASE64}" | base64 -d > my-upload-key.jks
+            echo "build_type=Release" >> "$GITHUB_OUTPUT"
+            echo "gradle_task=assembleRelease" >> "$GITHUB_OUTPUT"
+            echo "apk_glob=app/build/outputs/apk/release/*.apk" >> "$GITHUB_OUTPUT"
+          else
+            base64 -d debug.keystore.base64 > debug.keystore
+            echo "build_type=Debug" >> "$GITHUB_OUTPUT"
+            echo "gradle_task=assembleDebug" >> "$GITHUB_OUTPUT"
+            echo "apk_glob=app/build/outputs/apk/debug/*.apk" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run unit tests
+        env:
+          APP_VERSION_NAME: ${{ steps.version.outputs.version_name }}
+          APP_VERSION_CODE: ${{ steps.version.outputs.version_code }}
+        run: gradle :app:testDebugUnitTest --no-daemon
+
+      - name: Build APK
+        env:
+          APP_VERSION_NAME: ${{ steps.version.outputs.version_name }}
+          APP_VERSION_CODE: ${{ steps.version.outputs.version_code }}
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: gradle :app:${{ steps.signing.outputs.gradle_task }} --no-daemon
+
+      - name: Package & hash APK
+        id: artifact
+        shell: bash
+        run: |
+          mkdir -p release-output
+          SRC_APK=$(ls ${{ steps.signing.outputs.apk_glob }} | head -n 1)
+          if [[ ! -f "$SRC_APK" ]]; then
+            echo "APK output not found" >&2
+            exit 1
+          fi
+          OUT_APK="release-output/SuaraLingo-${{ steps.version.outputs.tag_name }}.apk"
+          cp "$SRC_APK" "$OUT_APK"
+          SHA256=$(sha256sum "$OUT_APK" | awk '{print $1}')
+          echo "apk_path=${OUT_APK}" >> "$GITHUB_OUTPUT"
+          echo "sha256=${SHA256}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload workflow APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SuaraLingo-${{ steps.version.outputs.tag_name }}
+          path: ${{ steps.artifact.outputs.apk_path }}
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag_name }}
+          name: "SuaraLingo ${{ steps.version.outputs.tag_name }}"
+          generate_release_notes: true
+          make_latest: true
+          body: |
+            Pembaruan otomatis SuaraLingo (${{ steps.version.outputs.tag_name }}).
+
+            - **Versi:** `${{ steps.version.outputs.version_name }}` (build `${{ steps.version.outputs.version_code }}`)
+            - **SHA-256:** `${{ steps.artifact.outputs.sha256 }}`
+            - **Commit:** `${{ github.sha }}`
+          files: |
+            ${{ steps.artifact.outputs.apk_path }}

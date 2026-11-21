@@ -19,10 +19,14 @@ data class TranslatorPreferences(
     val targetLangCode: String = TranslateLanguage.ENGLISH,
     val isOfflineMode: Boolean = false,
     val autoSpeak: Boolean = true,
-    val updateRepoSlug: String = "",
+    val updateRepoSlug: String = DEFAULT_UPDATE_REPO,
     val autoUpdateCheck: Boolean = true,
     val lastUpdateCheckMs: Long = 0L
-)
+) {
+    companion object {
+        const val DEFAULT_UPDATE_REPO = "Shadows179/SuaraLingo"
+    }
+}
 
 class UserPreferencesRepository(private val context: Context) {
 
@@ -37,12 +41,13 @@ class UserPreferencesRepository(private val context: Context) {
     }
 
     val preferencesFlow: Flow<TranslatorPreferences> = context.dataStore.data.map { prefs ->
+        val savedRepo = prefs[Keys.UPDATE_REPO]
         TranslatorPreferences(
             sourceLangCode = prefs[Keys.SOURCE_LANG] ?: TranslateLanguage.INDONESIAN,
             targetLangCode = prefs[Keys.TARGET_LANG] ?: TranslateLanguage.ENGLISH,
             isOfflineMode = prefs[Keys.OFFLINE_MODE] ?: false,
             autoSpeak = prefs[Keys.AUTO_SPEAK] ?: true,
-            updateRepoSlug = prefs[Keys.UPDATE_REPO] ?: "",
+            updateRepoSlug = if (savedRepo.isNullOrBlank()) TranslatorPreferences.DEFAULT_UPDATE_REPO else savedRepo,
             autoUpdateCheck = prefs[Keys.AUTO_UPDATE_CHECK] ?: true,
             lastUpdateCheckMs = prefs[Keys.LAST_UPDATE_CHECK_MS] ?: 0L
         )
